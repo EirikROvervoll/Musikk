@@ -33,6 +33,12 @@ songs = [
     {"tittel": "Oops!... I Did It Again", "artist": "Britney Spears", "tiår": "2000-tallet", "sjanger": "Pop"},
     {"tittel": "Wake Me Up", "artist": "Avicii", "tiår": "2010-tallet", "sjanger": "EDM"},
     {"tittel": "Shake It Off", "artist": "Taylor Swift", "tiår": "2010-tallet", "sjanger": "Pop"},
+    {"tittel": "I Wish", "artist": "Stevie Wonder", "tiår": "70-tallet", "sjanger": "Funk"},
+    {"tittel": "California Dreaming", "artist": "The Mamas and the Papas", "tiår": "60-tallet", "sjanger": "Folk Rock"},
+    {"tittel": "Piano Man", "artist": "Billy Joel", "tiår": "70-tallet", "sjanger": "Singer-Songwriter"},
+    {"tittel": "Den du veit", "artist": "Marius Muller", "tiår": "80-tallet", "sjanger": "Rock"},
+    {"tittel": "Brain Stew", "artist": "Green Day", "tiår": "90-tallet", "sjanger": "Punk/Alt Rock"},
+    {"tittel": "Sleepyhead", "artist": "Passion Pit", "tiår": "2000-tallet", "sjanger": "Indie Pop"},
 ]
 
 samfunn_quiz = [
