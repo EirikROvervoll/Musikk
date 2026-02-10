@@ -102,12 +102,23 @@ modus = st.sidebar.radio("Modus:", ["🎧 Gjett Låta", "🌍 Samfunn & Historie
 if modus == "🎧 Gjett Låta":
     st.header("Kan du detaljene om låta?")
     
-    # Initialize session state for song
-    if 'current_song' not in st.session_state:
-        st.session_state.current_song = random.choice(songs)
-        st.session_state.feedback = None
+    # --- LOGIKK FOR Å STOKKE KORTENE OG UNNGÅ REPETISJON ---
     
-    song = st.session_state.current_song
+    # Hvis vi ikke har en "kortstokk" (quiz_queue) enda, eller den er tom, lag en ny
+    if 'quiz_queue' not in st.session_state or not st.session_state.quiz_queue:
+        # random.sample lager en tilfeldig rekkefølge av alle sangene
+        st.session_state.quiz_queue = random.sample(songs, len(songs))
+        st.session_state.quiz_index = 0
+        st.toast("Kortstokken er stokket! Lykke til!", icon="🃏")
+
+    # Hent sangen basert på hvor langt vi har kommet i køen (index)
+    current_index = st.session_state.quiz_index
+    song = st.session_state.quiz_queue[current_index]
+
+    # Vis fremdrift
+    antall_totalt = len(songs)
+    antall_igjen = antall_totalt - current_index
+    st.progress(current_index / antall_totalt, text=f"Sang {current_index + 1} av {antall_totalt}")
 
     st.subheader(f"🎶 Låt: {song['tittel']}")
     st.write("Fyll inn detaljene nedenfor:")
@@ -146,8 +157,18 @@ if modus == "🎧 Gjett Låta":
             else:
                 st.error(f"❌ Feil sjanger. Riktig var: **{song['sjanger']}**")
 
+    # Knapp for neste sang
     if st.button("Neste sang ➡️"):
-        st.session_state.current_song = random.choice(songs)
+        # Øk indeksen med 1
+        st.session_state.quiz_index += 1
+        
+        # Sjekk om vi har gått gjennom alle sangene
+        if st.session_state.quiz_index >= len(songs):
+            st.session_state.quiz_queue = random.sample(songs, len(songs))
+            st.session_state.quiz_index = 0
+            st.balloons() # Litt feiring når man er ferdig!
+            st.success("Du har vært gjennom alle sangene! Vi stokker om og starter på nytt.")
+            
         st.rerun()
 
 # -----------------------------------------------------------------------------
