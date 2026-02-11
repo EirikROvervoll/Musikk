@@ -2,7 +2,7 @@ import streamlit as st
 import random
 
 # -----------------------------------------------------------------------------
-# 1. DATA (Hentet fra dokumentene dine)
+# 1. DATA
 # -----------------------------------------------------------------------------
 
 songs = [
@@ -33,7 +33,7 @@ songs = [
     {"tittel": "Oops!... I Did It Again", "artist": "Britney Spears", "tiår": "2000-tallet", "sjanger": "Pop"},
     {"tittel": "Wake Me Up", "artist": "Avicii", "tiår": "2010-tallet", "sjanger": "EDM"},
     {"tittel": "Shake It Off", "artist": "Taylor Swift", "tiår": "2010-tallet", "sjanger": "Pop"},
-    {"tittel": "I Wish", "artist": "Stevie Wonder", "tiår": "70-tallet", "sjanger": "Funk"},
+     {"tittel": "I Wish", "artist": "Stevie Wonder", "tiår": "70-tallet", "sjanger": "Funk"},
     {"tittel": "California Dreaming", "artist": "The Mamas and the Papas", "tiår": "60-tallet", "sjanger": "Folk Rock"},
     {"tittel": "Piano Man", "artist": "Billy Joel", "tiår": "70-tallet", "sjanger": "Singer-Songwriter"},
     {"tittel": "Den du veit", "artist": "Marius Muller", "tiår": "80-tallet", "sjanger": "Rock"},
@@ -108,46 +108,52 @@ modus = st.sidebar.radio("Modus:", ["🎧 Gjett Låta", "🌍 Samfunn & Historie
 if modus == "🎧 Gjett Låta":
     st.header("Kan du detaljene om låta?")
     
-    # --- LOGIKK FOR Å STOKKE KORTENE OG UNNGÅ REPETISJON ---
-    
-    # Hvis vi ikke har en "kortstokk" (quiz_queue) enda, eller den er tom, lag en ny
-    if 'quiz_queue' not in st.session_state or not st.session_state.quiz_queue:
-        # random.sample lager en tilfeldig rekkefølge av alle sangene
+    # 1. INITIALISER KØEN (Kun første gang)
+    if 'quiz_queue' not in st.session_state:
+        # Lager en tilfeldig rekkefølge av alle sangene
         st.session_state.quiz_queue = random.sample(songs, len(songs))
-        st.session_state.quiz_index = 0
-        st.toast("Kortstokken er stokket! Lykke til!", icon="🃏")
+        st.session_state.total_songs = len(songs)
+        st.session_state.last_result = None # For å huske om man svarte rett/galt
 
-    # Hent sangen basert på hvor langt vi har kommet i køen (index)
-    current_index = st.session_state.quiz_index
-    song = st.session_state.quiz_queue[current_index]
+    # 2. SJEKK OM MAN ER FERDIG
+    if len(st.session_state.quiz_queue) == 0:
+        st.balloons()
+        st.success("🎉 GRATULERER! 🎉")
+        st.write("Du har klart alle sangene uten feil (til slutt)!")
+        if st.button("Start helt på nytt"):
+            del st.session_state.quiz_queue
+            st.rerun()
+        st.stop() # Stopper koden her så man ikke ser quizen
+
+    # 3. HENT NESTE SANG I KØEN (Første i lista)
+    song = st.session_state.quiz_queue[0]
 
     # Vis fremdrift
-    antall_totalt = len(songs)
-    antall_igjen = antall_totalt - current_index
-    st.progress(current_index / antall_totalt, text=f"Sang {current_index + 1} av {antall_totalt}")
+    gjenstaende = len(st.session_state.quiz_queue)
+    st.info(f"Du har **{gjenstaende}** sanger igjen å mestre!")
+    progress_val = 1 - (gjenstaende / st.session_state.total_songs)
+    st.progress(progress_val)
 
     st.subheader(f"🎶 Låt: {song['tittel']}")
     st.write("Fyll inn detaljene nedenfor:")
 
     with st.form("song_quiz_form"):
-        # Artist input (litt snillere med case-insensitive sjekk)
+        # Inputs
         g_artist = st.text_input("Hvem er artisten?")
-        
-        # Tiår select
         tiar_liste = sorted(list(set([s['tiår'] for s in songs])))
         g_tiar = st.selectbox("Hvilket tiår?", ["Velg..."] + tiar_liste)
-        
-        # Sjanger select
         sjanger_liste = sorted(list(set([s['sjanger'] for s in songs])))
         g_sjanger = st.selectbox("Hvilken sjanger?", ["Velg..."] + sjanger_liste)
         
         submitted = st.form_submit_button("Sjekk Svar")
         
         if submitted:
+            # Sjekk svarene
             correct_artist = song['artist'].lower() in g_artist.lower() and len(g_artist) > 2
             correct_tiar = g_tiar == song['tiår']
             correct_sjanger = g_sjanger == song['sjanger']
             
+            # Gi feedback
             if correct_artist:
                 st.success(f"✅ Riktig artist! ({song['artist']})")
             else:
@@ -163,19 +169,32 @@ if modus == "🎧 Gjett Låta":
             else:
                 st.error(f"❌ Feil sjanger. Riktig var: **{song['sjanger']}**")
 
-    # Knapp for neste sang
-    if st.button("Neste sang ➡️"):
-        # Øk indeksen med 1
-        st.session_state.quiz_index += 1
-        
-        # Sjekk om vi har gått gjennom alle sangene
-        if st.session_state.quiz_index >= len(songs):
-            st.session_state.quiz_queue = random.sample(songs, len(songs))
-            st.session_state.quiz_index = 0
-            st.balloons() # Litt feiring når man er ferdig!
-            st.success("Du har vært gjennom alle sangene! Vi stokker om og starter på nytt.")
+            # Lagre resultatet til vi trykker "Neste"
+            if correct_artist and correct_tiar and correct_sjanger:
+                st.session_state.last_result = "correct"
+            else:
+                st.session_state.last_result = "wrong"
+
+    # Knapp for neste handling (vises bare etter at man har sjekket svar)
+    if st.session_state.last_result is not None:
+        if st.button("Neste sang ➡️"):
             
-        st.rerun()
+            current_song = st.session_state.quiz_queue.pop(0) # Ta ut sangen vi nettopp gjorde
+
+            if st.session_state.last_result == "correct":
+                # RIKTIG: Sangen er borte fra køen for alltid!
+                st.toast("Riktig! Én mindre å tenke på!", icon="😎")
+            
+            else:
+                # FEIL: Sett sangen inn igjen litt lenger bak i køen (index 3)
+                # Hvis det er færre enn 3 sanger igjen, legges den sist.
+                ny_plass = min(len(st.session_state.quiz_queue), 3)
+                st.session_state.quiz_queue.insert(ny_plass, current_song)
+                st.toast("Søren heller! Denne kommer tilbake om litt...", icon="🔁")
+            
+            # Nullstill resultatet og last siden på nytt
+            st.session_state.last_result = None
+            st.rerun()
 
 # -----------------------------------------------------------------------------
 # 4. MODUS: SAMFUNN & HISTORIE
