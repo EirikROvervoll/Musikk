@@ -40,7 +40,7 @@ songs = [
     {"tittel": "Brain Stew", "artist": "Green Day", "tiår": "90-tallet", "sjanger": "Punk/Alt Rock"},
     {"tittel": "Sleepyhead", "artist": "Passion Pit", "tiår": "2000-tallet", "sjanger": "Indie Pop"},
     {"tittel": "We like to party", "artist": "The vengaboys", "tiår": "90-tallet", "sjanger": "House/electro"},
-    {"tittel": "Heartless", "artist": "Kanye West", "tiår": "2000", "sjanger": "Rap/Hip-Hop"},
+    {"tittel": "Heartless", "artist": "Kanye West", "tiår": "2000-tallet", "sjanger": "Rap/Hip-Hop"},
 
 ]
 
